@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.webjjang.board.mapper.BoardMapper">
+
+<sql id="criteria">
+	<trim prefix="and(" suffix=") ">
+		<foreach item='type' collection="typeArr">
+			<trim>
+				<choose>
+					<when test="type== 'T'.toString()">
+						postTitle like '%' || #{keyword} || '%'
+					</when>
+					<when test="type== 'C'.toString()">
+						postContent like '%' || #{keyword} || '%'
+					</when>
+					<when test="type== 'W'.toString()">
+						postWriter like '%' || #{keyword} || '%'
+					</when>
+				</choose>
+			</trim>
+		</foreach>
+	</trim>
+</sql>
+
+<select id="selectBoardList" resultType="BoardVO"> 
+		select 
+			b3.* 
+		from 
+			(
+				select
+					 rownum rno, b2.* 
+				from 
+					(
+						select
+							b1.*
+						from board_post b1
+                        order by b1.postno desc
+					) b2 
+				where
+					1=1
+				<include refid="criteria"></include>
+			) b3
+		 where
+		 	b3.rno between (#{pageNum}-1)*#{amount}+1 and (#{pageNum})*#{amount}
+
+</select>
+
+<select id="selectCountAll" resultType="int">
+	select 
+		count(*) 
+	from 
+		board_post 
+	where 1=1
+	<include refid="criteria"></include>
+</select>
+
+</mapper>
